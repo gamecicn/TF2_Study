@@ -15,7 +15,7 @@ from joblib import dump, load
 from sklearn.model_selection import RandomizedSearchCV
 ################################################
 
-XGB_SEARCH_ITER = 1
+XGB_SEARCH_ITER = 20
 XGB_SEARCH_CV = 2
 
 JOB = cpu_count()
