@@ -18,20 +18,24 @@ from sklearn.model_selection import RandomizedSearchCV
 XGB_SEARCH_ITER = 1
 XGB_SEARCH_CV = 2
 
-JOB = 1  # cpu_count()
+JOB = cpu_count()
 
 MODEL_CONF = [
 
     ['sklearn.svm', 'LinearSVC', {}],
-    #['LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 100.0}],
-    #['LinearSVC', {'tol': 1e-03, 'max_iter': 1000, 'C': 100.0}],
-    #['LinearSVC', {'tol': 1e-04, 'max_iter': 1000, 'C': 100.0}],
-    #['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 100.0}],
-    #['LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 100.0}],
-    #['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+2}],
-    #['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+3}],
-    #['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-1}],
-    #['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-2}],
+    ['LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 100.0}],
+    ['LinearSVC', {'tol': 1e-03, 'max_iter': 1000, 'C': 100.0}],
+    ['LinearSVC', {'tol': 1e-04, 'max_iter': 1000, 'C': 100.0}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 100.0}],
+    ['LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 100.0}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+2}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+3}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-1}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-2}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 100, 'C': 1e+2}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 200, 'C': 1e+3}],
+    ['LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 1e-1}],
+    ['LinearSVC', {'tol': 1e-04, 'max_iter': 300, 'C': 1e-1}],
 
     ['sklearn.ensemble', 'RandomForestClassifier', {}],
 
