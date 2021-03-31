@@ -18,35 +18,101 @@ from sklearn.model_selection import RandomizedSearchCV
 XGB_SEARCH_ITER = 20
 XGB_SEARCH_CV = 2
 
-JOB = cpu_count()
+JOB = 1
+#JOB = cpu_count()
 
-MODEL_CONF = [
+MODEL_CONF =  [
+['sklearn.svm', 'LinearSVC', {}],
+
+]
+
+
+MODEL_CONF_1 = [
+
+
+
+    # MLP
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.05}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.35}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.05}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.2}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.3}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.05}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.2}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.3}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.35}],
+
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.05}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.35}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 10, 20), 'batch_size': 50, 'alpha': 0.05}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.2}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.3}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), '1batch_size': 50, 'alpha': 0.1}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.2}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.3}],
+    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.35}],
+
+    # Linear Regression
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'newton-cg'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'lbfgs'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'liblinear'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'sag'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'saga'}],
+
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'newton-cg'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'lbfgs'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'liblinear'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'sag'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'saga'}],
+
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter': 50, "solver" : 'newton-cg'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'lbfgs'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'liblinear'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'sag'}],
+    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'saga'}],
 
     ['sklearn.svm', 'LinearSVC', {}],
-    ['LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 100.0}],
-    ['LinearSVC', {'tol': 1e-03, 'max_iter': 1000, 'C': 100.0}],
-    ['LinearSVC', {'tol': 1e-04, 'max_iter': 1000, 'C': 100.0}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 100.0}],
-    ['LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 100.0}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+2}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+3}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-1}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-2}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 100, 'C': 1e+2}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 200, 'C': 1e+3}],
-    ['LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 1e-1}],
-    ['LinearSVC', {'tol': 1e-04, 'max_iter': 300, 'C': 1e-1}],
+    ['sklearn.svm', 'sklearn.svm', 'LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 100.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-03, 'max_iter': 1000, 'C': 100.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-04, 'max_iter': 1000, 'C': 100.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 100.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 100.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+2}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+3}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-1}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-2}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 100, 'C': 1e+2}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 200, 'C': 1e+3}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 1e-1}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-04, 'max_iter': 300, 'C': 1e-1}],
 
     ['sklearn.ensemble', 'RandomForestClassifier', {}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 200, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 45}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 10}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 20}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 20}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 2, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
+    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 15}],
 
 ]
 
 XGB_SEARCH_PARA = {
     'eta': [1, 2, 3, 5, 10, 12, 15, 20],
     "learning_rate": [0.05, 0.10, 0.15, 0.20, 0.25, 0.30],
-    "max_depth": [40, 50, 60, 70, 80, 90, 100],
+    "max_depth": [2, 4, 8, 10, 15, 20, 30 ,40, 50, 60],
     "min_child_weight": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19],
-    "gamma": [0.0, 0.1, 0.2, 0.3, 0.4],
+    "gamma": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
     "colsample_bytree": [0.3, 0.4, 0.5, 0.7],
     'n_estimators': [2, 5, 10, 15, 20, 25, 30, 40, 50, 60]
 
@@ -120,7 +186,7 @@ def split_array_into_n_subarray(arr, bin_number):
     :return:
     '''
     if len(arr) % bin_number == 0:
-        bin_size = int(len(arr) / bin_number)
+        bin_size = max(1, int(len(arr) / bin_number))
     else:
         bin_size = max(1, int(len(arr) / (bin_number - 1)))
     return [arr[i * bin_size:(i + 1) * bin_size] for i in range((len(arr) + bin_size - 1) // bin_size)]
@@ -148,6 +214,14 @@ def is_feature_exist(hash_id):
            & path.exists("./feature/{}.testcsv".format(hash_id)) \
            & path.exists("./feature/{}.xsubcsv".format(hash_id)) \
            & path.exists("./feature/{}.xallcsv".format(hash_id))
+
+
+def is_need_gen_feature(modle_file):
+
+    hash_id = modle_file[8:-7]
+
+    return (not is_feature_exist(hash_id))
+
 
 
 def save_model(hash_id, clf):
@@ -196,6 +270,14 @@ def get_exist_X_train_all_features():
     feature_file = glob.glob(u"./feature/*.xallcsv")
     return feature_file
 
+def get_exist_models():
+    """
+    :param target_folder:
+    :return: image file name list
+    """
+    model_file = glob.glob(u"./model/*.joblib")
+    return model_file
+
 ###################################################
 
 def __generate_model(arg):
@@ -205,24 +287,34 @@ def __generate_model(arg):
     for index, task in enumerate(task_list):
 
         hash_id = get_hash_id(str(task))
-        print("generate model {} of {} [{} : {}]".format(index, len(task_list), hash_id, str(task)))
 
         try:
-            if is_model_exist(hash_id):
-                print("{} already exist".format(hash_id))
-                continue
+            print("generate model {} of {} [{} : {}]".format(index, len(task_list), hash_id, str(task)))
 
             model = create_class(*task)
             model.fit(X_train, y_train)
             save_model(hash_id, model)
-
         except:
-            print("Exception arise {}".format(hash_id))
+            print("Genearate model fail {} {}".format(str(task), hash_id))
 
 def generate_model(X_train, y_train):
 
+    exist_model = [str(m)[8:-7] for m in get_exist_models()]
+    new_model = []
+
+    for conf in MODEL_CONF:
+        hid = get_hash_id(str(conf))
+        print("{} hash_id: {}".format(str(conf), hid))
+
+        if hid in exist_model:
+            print("Model {} already exist".format(hid))
+            continue
+        else:
+            new_model.append(conf)
+
+
     job_num = JOB
-    task_list = split_array_into_n_subarray(MODEL_CONF, job_num)
+    task_list = split_array_into_n_subarray(new_model, job_num)
     p = Pool(job_num)
     p.map(__generate_model, [(tasks, X_train, y_train) for tasks in task_list])
 
@@ -257,7 +349,7 @@ def __generate_feature(arg):
         if y_pred_train is not None:
 
             y_sub_pred = clf.predict(X_subtest)
-            print("!!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Accuracy: {}  [hash_id]".format(accuracy_score(y_sub_test, y_sub_pred)))
+            print("!!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Accuracy: {}  [{}]".format(accuracy_score(y_sub_test, y_sub_pred), hash_id))
 
             pd.Series(y_pred_train).to_csv("./feature/{}.traincsv".format(hash_id), index=False)
             pd.Series(y_pred_test).to_csv("./feature/{}.testcsv".format(hash_id), index=False)
@@ -270,6 +362,10 @@ def __generate_feature(arg):
 def generate_feature(X_train, X_test, X_subtest, y_sub_test, X_train_all):
 
     model_files = get_exist_models()
+    model_files = list(filter(is_need_gen_feature, model_files))
+
+    if len(model_files) == 0:
+        print("All feature done")
 
     job_num = JOB
     p = Pool(job_num)
@@ -369,11 +465,13 @@ def do_predict(y_sub_train, y_sub_test, y_train_all):
 
 if __name__ == "__main__":
 
+    print("Job: {}".format(JOB))
+
     X_train_all, y_train_all, X_test_all = load_data()
 
     X_sub_train, X_sub_test, y_sub_train, y_sub_test = train_test_split(X_train_all, y_train_all, test_size=0.1, random_state=42)
 
-    #generate_model(X_sub_train, y_sub_train)
+    generate_model(X_sub_train, y_sub_train)
 
     generate_feature(X_sub_train, X_test_all, X_sub_test, y_sub_test, X_train_all)
 
