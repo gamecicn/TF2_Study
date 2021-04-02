@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import glob
 import pickle
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, Normalizer
 from time import strftime, localtime
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
@@ -15,43 +15,167 @@ from joblib import dump, load
 from sklearn.model_selection import RandomizedSearchCV
 ################################################
 
-XGB_SEARCH_ITER = 4
-XGB_SEARCH_CV = 2
 
-JOB = 1
-#JOB = cpu_count()
+# Dev Setting
+XGB_SEARCH_ITER = 1
+XGB_SEARCH_CV = 2
+JOB = 4
+
+
 
 MODEL_CONF = [
+
+['sklearn.ensemble', 'AdaBoostClassifier', {}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 80, "learning_rate" : 0.5, "random_state" : 10}],
+
+['sklearn.ensemble', 'BaggingClassifier', {}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 20, "max_samples" : 5, "max_features" : 10, "random_state" : 10}],
+
+['sklearn.ensemble', 'ExtraTreesClassifier', {}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 100, "max_depth" : 10, "min_samples_split" : 5, "min_samples_leaf" : 2}],
+
+['sklearn.linear_model', 'RidgeClassifier', {}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.8, "max_iter" : 1000}],
+
+['sklearn.linear_model', 'SGDClassifier', {}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0005, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+
+['sklearn.linear_model', 'SGDClassifier', {}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0005, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+
+['sklearn.naive_bayes', 'BernoulliNB', {}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.8, "binarize" : 0}],
+
+['sklearn.tree', 'DecisionTreeClassifier', {}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 4, "max_depth" : 10}],
+
+['sklearn.svm', 'SVC', {}],
+['sklearn.svm', 'SVC', {'degree': 5, 'max_iter': 1000, 'C': 1.0, 'coef0' : 0.1}],
+
+['sklearn.svm', 'NuSVC', {}],
+['sklearn.svm', 'NuSVC', {'nu': 0.8, 'degree': 5, 'C': 1.0, 'coef0' : 0.1}],
+
+
+]
+
+# Real Setting
+'''
+XGB_SEARCH_ITER = 100
+XGB_SEARCH_CV = 2
+JOB = cpu_count()
+'''
+
+MODEL_CONF_TEST = [
+
+['sklearn.ensemble', 'AdaBoostClassifier', {}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 80, "learning_rate"  : 0.8, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 100, "learning_rate" : 0.5, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 120, "learning_rate" : 0.5, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 150, "learning_rate" : 0.5, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 80, "learning_rate"  : 0.1, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 100, "learning_rate" : 0.2, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 120, "learning_rate" : 0.3, "random_state" : 10}],
+['sklearn.ensemble', 'AdaBoostClassifier', {"n_estimators" : 150, "learning_rate" : 0.5, "random_state" : 10}],
+
+['sklearn.ensemble', 'BaggingClassifier', {}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 20, "max_samples" : 5, "max_features" : 20, "random_state" : 10}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 20, "max_samples" : 5, "max_features" : 10, "random_state" : 10}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 30, "max_samples" : 10, "max_features" : 30, "random_state" : 10}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 30, "max_samples" : 5, "max_features" : 10, "random_state" : 10}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 50, "max_samples" : 10, "max_features" : 10, "random_state" : 10}],
+['sklearn.ensemble', 'BaggingClassifier', {"n_estimators" : 50, "max_samples" : 5, "max_features" : 30, "random_state" : 10}],
+
+
+['sklearn.ensemble', 'ExtraTreesClassifier', {}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 100, "max_depth" : 10, "min_samples_split" : 5, "min_samples_leaf" : 2}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 100, "max_depth" : 10, "min_samples_split" : 20, "min_samples_leaf" : 5}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 100, "max_depth" : 10, "min_samples_split" : 20, "min_samples_leaf" : 2}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 50, "max_depth" : 50, "min_samples_split" : 20, "min_samples_leaf" : 2}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 50, "max_depth" : 50, "min_samples_split" : 5, "min_samples_leaf" : 5}],
+['sklearn.ensemble', 'ExtraTreesClassifier', {"n_estimators" : 50, "max_depth" : 50, "min_samples_split" : 5, "min_samples_leaf" : 2}],
+
+
+['sklearn.linear_model', 'RidgeClassifier', {}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.8, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.7, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.6, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.5, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.4, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.3, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.2, "max_iter" : 1000}],
+['sklearn.linear_model', 'RidgeClassifier', {"alpha" : 0.1, "max_iter" : 1000}],
+
+
+['sklearn.linear_model', 'SGDClassifier', {}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0005, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.001, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0015, "l1_ratio" : 0.02, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0020, "l1_ratio" : 0.02, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0025, "l1_ratio" : 0.02, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.003, "l1_ratio" : 0.05, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.004, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.005, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+
+
+['sklearn.linear_model', 'SGDClassifier', {}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.0005, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.001, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.002, "l1_ratio" : 0.02, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.005, "l1_ratio" : 0.03, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.01, "l1_ratio" : 0.04, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.015, "l1_ratio" : 0.02, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.2, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.2, "eta0" : 0.1, "n_iter_no_change" : 5}],
+['sklearn.linear_model', 'SGDClassifier', {"alpha" : 0.3, "l1_ratio" : 0.01, "max_iter": 1000, "epsilon" :0.1, "eta0" : 0.1, "n_iter_no_change" : 5}],
+
+
+
+['sklearn.naive_bayes', 'BernoulliNB', {}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.8, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.7, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.6, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.5, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.4, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.3, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.2, "binarize" : 0}],
+['sklearn.naive_bayes', 'BernoulliNB', {"alpha" : 0.1, "binarize" : 0}],
+
+['sklearn.tree', 'DecisionTreeClassifier', {}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 4, "max_depth" : 10}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 4, "max_depth" : 20}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 4, "max_depth" : 30}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 6, "max_depth" : 40}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 6, "max_depth" : 50}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 6, "max_depth" : 60}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 2, "max_depth" : 70}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 2, "max_depth" : 80}],
+['sklearn.tree', 'DecisionTreeClassifier', {"min_samples_split" : 2, "max_depth" : 90}],
+
+['sklearn.svm', 'SVC', {}],
+['sklearn.svm', 'SVC', {'degree': 5, 'max_iter': 1000, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'SVC', {'degree': 5, 'max_iter': 1000, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'SVC', {'degree': 15, 'max_iter': 1000, 'C': 2.0, 'coef0' : 0.2}],
+['sklearn.svm', 'SVC', {'degree': 15, 'max_iter': 1000, 'C': 2.0, 'coef0' : 0.2}],
+['sklearn.svm', 'SVC', {'degree': 15, 'max_iter': 1000, 'C': 2.0, 'coef0' : 0.2}],
+['sklearn.svm', 'SVC', {'degree': 25, 'max_iter': 1000, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'SVC', {'degree': 25, 'max_iter': 1000, 'C': 1.0, 'coef0' : 0.1}],
+
+['sklearn.svm', 'NuSVC', {}],
+['sklearn.svm', 'NuSVC', {'nu': 0.8, 'degree': 5, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'NuSVC', {'nu': 0.8, 'degree': 5, 'C': 1.0, 'coef0' : 0.2}],
+['sklearn.svm', 'NuSVC', {'nu': 0.6, 'degree': 10, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'NuSVC', {'nu': 0.6, 'degree': 5, 'C': 1.0, 'coef0' : 0.2}],
+['sklearn.svm', 'NuSVC', {'nu': 0.4, 'degree': 5, 'C': 1.0, 'coef0' : 0.1}],
+['sklearn.svm', 'NuSVC', {'nu': 0.4, 'degree': 10, 'C': 1.0, 'coef0' : 0.2}],
 
     # MLP
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.05}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.1}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.35}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.05}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.1}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.2}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20), 'batch_size': 50, 'alpha': 0.3}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.05}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.1}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.2}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.3}],
     ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 100, 'alpha': 0.35}],
-
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.05}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.1}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.0001, 'hidden_layer_sizes': (30, 30), 'batch_size': 50, 'alpha': 0.35}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 10, 20), 'batch_size': 50, 'alpha': 0.05}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.1}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.2}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.001, 'hidden_layer_sizes': (20, 20, 20), 'batch_size': 50, 'alpha': 0.3}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), '1batch_size': 50, 'alpha': 0.1}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.2}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.3}],
-    ['sklearn.neural_network', 'MLPClassifier', {'learning_rate_init': 0.01, 'hidden_layer_sizes': (10, 10), 'batch_size': 50, 'alpha': 0.35}],
 
     # Linear Regression
     ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 100, "solver" : 'newton-cg'}],
@@ -66,42 +190,22 @@ MODEL_CONF = [
     ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'sag'}],
     ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 200, "solver" : 'saga'}],
 
-    ['sklearn.linear_model', 'LogisticRegression', {'max_iter': 50, "solver" : 'newton-cg'}],
-    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'lbfgs'}],
-    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'liblinear'}],
-    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'sag'}],
-    ['sklearn.linear_model', 'LogisticRegression', {'max_iter' : 50, "solver" : 'saga'}],
-
     ['sklearn.svm', 'LinearSVC', {}],
-    ['sklearn.svm', 'sklearn.svm', 'LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 100.0}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-03, 'max_iter': 1000, 'C': 100.0}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-04, 'max_iter': 1000, 'C': 100.0}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 100.0}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 100.0}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+2}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e+3}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-1}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 1e-2}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 100, 'C': 1e+2}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 200, 'C': 1e+3}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 1e-1}],
-    ['sklearn.svm', 'LinearSVC', {'tol': 1e-04, 'max_iter': 300, 'C': 1e-1}],
+    ['sklearn.svm', 'sklearn.svm', 'LinearSVC', {'tol': 1e-02, 'max_iter': 1000, 'C': 1}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-03, 'max_iter': 500, 'C': 1.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-04, 'max_iter': 500, 'C': 1.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 1.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-06, 'max_iter': 1000, 'C': 1.0}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 1000, 'C': 2}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 4}],
+    ['sklearn.svm', 'LinearSVC', {'tol': 1e-05, 'max_iter': 500, 'C': 5}],
+
 
     # RF
     ['sklearn.ensemble', 'RandomForestClassifier', {}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 200, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 45}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 10}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 20}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 20}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 10, 'min_samples_split': 15, 'min_samples_leaf': 2, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 30}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'sqrt', 'max_depth': 15}],
-
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 10, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 20, 'min_samples_split': 15, 'min_samples_leaf': 2, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 2}],
@@ -112,12 +216,6 @@ MODEL_CONF = [
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 10, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 2, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'auto', 'max_depth': 10}],
-
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'log2', 'max_depth': 10}],
-    ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'log2', 'max_depth': 10}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'log2', 'max_depth': 10}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'log2', 'max_depth': 10}],
     ['sklearn.ensemble', 'RandomForestClassifier', {'n_estimators': 50, 'min_samples_split': 15, 'min_samples_leaf': 4, 'min_impurity_decrease': 0, 'max_features': 'log2', 'max_depth': 10}],
@@ -142,6 +240,46 @@ XGB_SEARCH_PARA = {
 # Load the data
 ################################
 
+from sklearn.preprocessing import OneHotEncoder
+
+class LocalOneHotEncoder(object):
+
+  def __init__(self, target_columns):
+    '''
+    @param: target_columns --- To perform one-hot encoding column name list.
+    '''
+    self.enc = OneHotEncoder(handle_unknown='ignore')
+    self.col_names = target_columns
+    print("Success")
+
+  def fit(self, df):
+    '''
+    @param: df --- pandas DataFrame
+    '''
+    self.enc.fit(df[self.col_names].values)
+    self.labels = np.array(self.enc.categories_).ravel()
+    self.new_col_names = self.gen_col_names(df)
+
+  def gen_col_names(self, df):
+    '''
+    @param:  df --- pandas DataFrame
+    '''
+    new_col_names = []
+    for col in self.col_names:
+      for val in df[col].unique():
+        new_col_names.append("{}_{}".format(col, val))
+    return new_col_names
+
+  def transform(self, df):
+     '''
+     @param:  df --- pandas DataFrame
+     '''
+     return pd.DataFrame(data = self.enc.transform(df[self.col_names]).toarray(),
+                         columns = self.new_col_names,
+                         dtype=int)
+
+
+
 
 def load_data(path = "./data/a5_q1.pkl"):
 
@@ -154,13 +292,36 @@ def load_data(path = "./data/a5_q1.pkl"):
     X_test_original = data['X_test']
     X_test_ohe = data['X_test_ohe']
 
+
+
+    # ========================================
+    ONEHOT_COLUMNS = ["arrival_date_year"]
+
+    ## OneHot Year
+    ohe_encoder = LocalOneHotEncoder(ONEHOT_COLUMNS)
+    ohe_encoder.fit(X_train_ohe)
+
+    X_train_ohe = pd.concat(
+        [X_train_ohe.reset_index(drop=True), ohe_encoder.transform(X_train_ohe).reset_index(drop=True)], axis=1)
+    X_test_ohe = pd.concat(
+        [X_test_ohe.reset_index(drop=True), ohe_encoder.transform(X_test_ohe).reset_index(drop=True)], axis=1)
+
+    X_train_ohe.pop("arrival_date_year")
+    X_test_ohe.pop("arrival_date_year")
+
+    ## Add a new column
+    X_train_ohe['is_equal_resve'] = (
+                X_train_original['reserved_room_type'] == X_train_original['assigned_room_type']).astype(int)
+    X_test_ohe['is_equal_resve'] = (
+                X_test_original['reserved_room_type'] == X_test_original['assigned_room_type']).astype(int)
+
     # since there are 2 missing value, just set them to zero
     X_train_ohe.fillna(0, inplace=True)
     X_test_ohe.fillna(0, inplace=True)
 
-    #scaler = MinMaxScaler().fit(X_train_ohe)
-    #X_train_ohe_scale = scaler.transform(X_train_ohe)
-    #X_test_ohe_scale = scaler.transform(X_test_ohe)
+    scaler = Normalizer().fit(X_train_ohe)
+    X_train_ohe = scaler.transform(X_train_ohe)
+    X_test_ohe = scaler.transform(X_test_ohe)
 
     return X_train_ohe, y_train_original, X_test_ohe,
 
@@ -227,10 +388,8 @@ def is_model_exist(hash_id):
     return path.exists("./model/{}.joblib".format(hash_id))
 
 def is_feature_exist(hash_id):
-    return   path.exists("./feature/{}.traincsv".format(hash_id)) \
-           & path.exists("./feature/{}.testcsv".format(hash_id)) \
-           & path.exists("./feature/{}.xsubcsv".format(hash_id)) \
-           & path.exists("./feature/{}.xallcsv".format(hash_id))
+    return   path.exists("./feature/{}.testcsv".format(hash_id)) \
+           & path.exists("./feature/{}.traincsv".format(hash_id))
 
 
 def is_need_gen_feature(modle_file):
@@ -338,7 +497,7 @@ def generate_model(X_train, y_train):
 
 def __generate_feature(arg):
 
-    files, X_train, X_test, X_subtest, y_sub_test, X_train_all = arg
+    files, X_train_all, X_test = arg
 
     for index, model_file in enumerate(files):
 
@@ -351,32 +510,22 @@ def __generate_feature(arg):
 
         clf = load_model(model_file)
         if hasattr(clf, "predict_proba"):
-            y_pred_train = [x[1] for x in clf.predict_proba(X_train)]
+            y_pred_train = [x[1] for x in clf.predict_proba(X_train_all)]
             y_pred_test = [x[1] for x in clf.predict_proba(X_test)]
-            y_pred_xsub = [x[1] for x in clf.predict_proba(X_subtest)]
-            y_pred_all = [x[1] for x in clf.predict_proba(X_train_all)]
         elif hasattr(clf, "predict"):
-            y_pred_train = clf.predict(X_train)
+            y_pred_train = clf.predict(X_train_all)
             y_pred_test = clf.predict(X_test)
-            y_pred_xsub = clf.predict(X_subtest)
-            y_pred_all = clf.predict(X_train_all)
         else:
-            y_pred_train = y_pred_test = y_pred_xsub = y_pred_all = None
+            y_pred_test = y_pred_train= None
 
-        if y_pred_train is not None:
-
-            y_sub_pred = clf.predict(X_subtest)
-            print("!!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Accuracy: {}  [{}]".format(accuracy_score(y_sub_test, y_sub_pred), hash_id))
-
-            pd.Series(y_pred_train).to_csv("./feature/{}.traincsv".format(hash_id), index=False)
+        if y_pred_test is not None:
             pd.Series(y_pred_test).to_csv("./feature/{}.testcsv".format(hash_id), index=False)
-            pd.Series(y_pred_xsub).to_csv("./feature/{}.xsubcsv".format(hash_id), index=False)
-            pd.Series(y_pred_all).to_csv("./feature/{}.xallcsv".format(hash_id), index=False)
+            pd.Series(y_pred_train).to_csv("./feature/{}.traincsv".format(hash_id), index=False)
 
 
 
 
-def generate_feature(X_train, X_test, X_subtest, y_sub_test, X_train_all):
+def generate_feature(X_test_all):
 
     model_files = get_exist_models()
     model_files = list(filter(is_need_gen_feature, model_files))
@@ -388,7 +537,7 @@ def generate_feature(X_train, X_test, X_subtest, y_sub_test, X_train_all):
     p = Pool(job_num)
     task_list = split_array_into_n_subarray(model_files, job_num)
 
-    p.map(__generate_feature, [(task, X_train, X_test, X_subtest, y_sub_test, X_train_all) for task in task_list])
+    p.map(__generate_feature, [(task, X_train_all, X_test_all) for task in task_list])
 
 
 def geature_xgb_train_featurs():
@@ -423,12 +572,12 @@ def get_timestamped_file_name(filename, path='./', postfix="csv"):
 # ========================================
 
 
-def search_best_XGboost_parameter(X_train, X_test, y_train, y_test):
+def search_best_XGboost_parameter(X_train, y_train):
 
     clf = xgb.XGBClassifier(objective = 'binary:logistic')
 
     print("===== Searching best XGBoost parameter")
-    '''
+
     # run randomized search
     n_iter_search = XGB_SEARCH_ITER
     random_search = RandomizedSearchCV(clf,
@@ -440,7 +589,7 @@ def search_best_XGboost_parameter(X_train, X_test, y_train, y_test):
                                        verbose=10,)
 
     start = time()
-    random_search.fit(X_train.values, y_train.values)
+    random_search.fit(X_train, y_train)
     print("RandomizedSearchCV took %.2f seconds for %d candidates"
           " parameter settings." % ((time() - start), n_iter_search))
 
@@ -448,49 +597,27 @@ def search_best_XGboost_parameter(X_train, X_test, y_train, y_test):
     print(best_para)
 
     print("===== Searching best XGBoost parameter finish")
-    '''
-    #==============================
-    #X_test
-    #===============================
-    best_para = {'n_estimators': 50,
-                 'min_child_weight': 4,
-                 'max_depth': 75,
-                 'learning_rate': 0.25,
-                 'gamma': 0.1,
-                 'eta': 8,
-                 'colsample_bytree': 0.7}
-
-    clf = xgb.XGBClassifier(**best_para)
-    clf.fit(X_train.values, y_train.values)
-    y_pred = clf.predict(X_test.values)
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> XGB Final Accuracy: {}".format(accuracy_score(y_test, y_pred)))
 
     return best_para
 
-def do_predict(y_sub_train, y_sub_test, y_train_all, X_origin_train_all, X_sub_train, X_sub_test, X_test_all):
 
-    X_new_sub_train = geature_xgb_train_featurs()
+def do_predict(X_train_all, y_train_all, X_test_all):
+
+    X_new_train = geature_xgb_train_featurs()
     X_new_predict = geature_xgb_predict_featurs()
-    X_new_sub_test = geature_xgb_sub_Xtest_featurs()
-    X_new_train_all = geature_X_train_all_featurs()
-
-    X_final_new_sub_train = pd.concat([X_new_sub_train.reset_index(drop=True), pd.DataFrame(X_sub_train).reset_index(drop=True)], axis=1)
-    X_final_new_sub_test = pd.concat([X_new_sub_test.reset_index(drop=True), pd.DataFrame(X_sub_test).reset_index(drop=True)], axis=1)
-
-    X_final_new_predict = pd.concat([X_new_predict.reset_index(drop=True), pd.DataFrame(X_test_all).reset_index(drop=True)], axis=1)
-
-    X_final_all = pd.concat([X_new_train_all.reset_index(drop=True), pd.DataFrame(X_origin_train_all).reset_index(drop=True)], axis=1)
-
-    best_para = search_best_XGboost_parameter(X_final_new_sub_train, X_final_new_sub_test, y_sub_train, y_sub_test)
 
 
+    X_final_test = pd.concat([X_new_predict.reset_index(drop=True), pd.DataFrame(X_test_all).reset_index(drop=True)], axis=1)
+    X_final_train = pd.concat([X_new_train.reset_index(drop=True), pd.DataFrame(X_train_all).reset_index(drop=True)], axis=1)
+
+    best_para = search_best_XGboost_parameter(X_final_train.values, y_train_all.values)
 
     # Traning on all data
     clf = xgb.XGBClassifier(**best_para)
 
-    clf.fit(X_final_all.values, y_train_all.values)
+    clf.fit(X_final_train.values, y_train_all.values)
 
-    y_pred = clf.predict_proba(X_final_new_predict.values)
+    y_pred = clf.predict_proba(X_final_test.values)
 
     predictions = [x[1] for x in y_pred]
     submit_file = get_timestamped_file_name('submission', './predict', 'csv')
@@ -504,15 +631,15 @@ if __name__ == "__main__":
 
     X_train_all, y_train_all, X_test_all = load_data()
 
-    X_sub_train, X_sub_test, y_sub_train, y_sub_test = train_test_split(X_train_all, y_train_all, test_size=0.1, random_state=42)
+    #X_sub_train, X_sub_test, y_sub_train, y_sub_test = train_test_split(X_train_all, y_train_all, test_size=0.1, random_state=42)
 
     #================================
 
-    # generate_model(X_sub_train, y_sub_train)
+    generate_model(X_train_all, y_train_all)
 
-    generate_feature(X_sub_train, X_test_all, X_sub_test, y_sub_test, X_train_all)
+    generate_feature(X_train_all)
 
-    do_predict(y_sub_train, y_sub_test, y_train_all, X_train_all, X_sub_train, X_sub_test, X_test_all)
+    do_predict(X_train_all, y_train_all, X_test_all)
 
 
 
